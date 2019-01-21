@@ -1,10 +1,12 @@
+%加权质心算法
 %定位初始化
 Length=100; %场地空间长度，单位：米
 Width=100;  %场地空间宽度，单位：米
 d=50;       %观测站最大测量距离
-N=6;        %观测站个数
+Node_number=6;        %观测站个数
+SNR=50;     %信噪比,单位db
 
-for i=1:N   %观测站位置初始化，位置随机给定
+for i=1:Node_number   %观测站位置初始化，位置随机给定
     Node(i).x=Width*rand;
     Node(i).y=Length*rand;
 end
@@ -13,23 +15,31 @@ end
 Target.x=Width*rand;
 Target.y=Length*rand;
 X=[];   %初始化，找出能探测到目标的观测站的位置集合
-
-for i=1:N
-    if getDist(Node(i),Target)<=d
-        X=[X;Node(i).x, Node(i).y];  %保存探测到目标的观测站位置
-    end 
+W=[];   %权值 
+for i=1:Node_number
+    dd=getDist(Node(i),Target);
+    Q=(1/dd)/(10^(20/SNR));  %根据信噪比公式求噪声方差, 这里假设S与距离满足S=1/dd关系
+    if dd<=d
+        X=[X;Node(i).x,Node(i).y];
+        W=[W,1/((dd+sqrt(Q)*randn))^2]; %信号衰减公式
+    end
 end
 
+%权值归一化
+W=W./sum(W);    %表示W中的每一个值与sum(W)相除
 M=size(X,1);    %探测到目标的观测站个数
-if M>0
-    Est_Target.x=sum(X(:,1))/M;     %质心算法估计位置x
-    Est_Target.y=sum(X(:,2))/M;     %质心算法估计位置y
-    Error_Dist=getDist(Est_Target,Target) %目标真实位置与估计位置的偏差距离
+sumx=0;sumy=0;
+for i=1:M
+    sumx=sumx+X(i,1)*W(i);
+    sumy=sumy+X(i,2)*W(i);
 end
+Est_Target.x=sumx;      %目标估计位置x
+Est_Target.y=sumy;      %目标估计位置y
+Error_Dist=getDist(Est_Target,Target)      %目标真实位置与估计位置的偏差距离
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 figure      %画图
 hold on;box on;axis([0 100 0 100]);     %输出图形的框架
-for i=1:N
+for i=1:Node_number
     h1=plot(Node(i).x,Node(i).y,'ko','markerface','g','MarkerSize',10); 
     text(Node(i).x+2,Node(i).y,['Node',num2str(i)]); %
 end
