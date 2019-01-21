@@ -31,7 +31,7 @@ figure      %画图
 hold on;box on;axis([0 100 0 100]);     %输出图形的框架
 for i=1:N
     h1=plot(Node(i).x,Node(i).y,'ko','markerface','g','MarkerSize',10); 
-    text(Node(i).x+2,Node(i).y,['Ne',num2str(i)]); %
+    text(Node(i).x+2,Node(i).y,['Node',num2str(i)]); %
 end
 %画目标的真实位置和估计位置
 h2=plot(Target.x, Target.y,'k^','MarkerFace','b','MarkerSize',10);
