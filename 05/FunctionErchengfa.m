@@ -17,7 +17,7 @@ Target.x=Width*rand;
 Target.y=Length*rand;
 
 %观测站探测目标
-X=[];
+X=[];   %基站的位置集合
 Z=[];   %测量距离
 
 for i=1:Node_number
